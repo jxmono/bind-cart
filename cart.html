@@ -1,0 +1,40 @@
+<style type="text/css">
+.header {
+    background: #444;
+    color: #FFF;
+    font-weight: bold;
+    height: 30px;
+    line-height: 30px;
+}
+.item {
+    height: 30px;
+    line-height: 30px;
+    cursor: default;
+    moz-user-select: none; 
+    -khtml-user-select: none; 
+    -webkit-user-select: none; 
+    -o-user-select: none;
+}
+.item:hover {
+    background-color: #EEE;
+}
+.selected {
+    background: red;
+}
+.selected:hover {
+    background: #E00;
+}
+.item .delete:hover {
+    background-color: #FFF;
+}
+</style>
+<div style="display: none" class="item template">
+    <span class="itemText">This is the invisible template</span>
+    <a href="#" class="delete"><i class="icon-remove"></i></a>
+</div>
+<div class="header">List Header</div>
+<div class="content"></div>
+<div class="controls">
+    <a href="#" class="btn create"><i class="icon-plus"></i></a>
+    <a href="#" class="btn delete"><i class="icon-minus"></i></a>
+</div>

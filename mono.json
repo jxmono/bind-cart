@@ -1,0 +1,17 @@
+{
+    "source": "github",
+    "owner": "adioo",
+    "name": "bind-cart-dev",
+    "main": "main.js",
+    "dependencies": {
+        "github/adioo/bind": "v0.2.0",
+        "github/adioo/bind-list": "v0.1.0",
+        "github/adioo/events": "v0.1.0"
+    },
+    "operations": [
+        { "file": "operations.js", "function": "create" },
+        { "file": "operations.js", "function": "read" },
+        { "file": "operations.js", "function": "update" },
+        { "file": "operations.js", "function": "remove" }
+    ]
+}
