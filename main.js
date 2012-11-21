@@ -12,7 +12,7 @@ define(["github/adioo/bind-cart-dev/v0.1.0/cart"], function(Cart) {
         }
 
         this.lang = "de";
-        config.options.type = "server";
+        //config.options.type = "server";
         self = Cart(this, config);
     }
 

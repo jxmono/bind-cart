@@ -1,7 +1,7 @@
 {
     "source": "github",
     "owner": "adioo",
-    "name": "bind-cart-dev",
+    "name": "bind-cart",
     "main": "main.js",
     "dependencies": {
         "github/adioo/bind": "v0.2.0",
