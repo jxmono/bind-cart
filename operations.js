@@ -144,10 +144,42 @@ exports.remove = function(link) {
 
         var data = link.data || {};
 
-            var unset = {};
-            unset["items." + data._id] = 1;
+        var unset = {};
+        unset["items." + data._id] = 1;
 
-            collection.update({ _id: link.session.id }, { $unset: unset }, { safe: true }, function(err, results) {
+        collection.update({ _id: link.session.id }, { $unset: unset }, { safe: true }, function(err, results) {
+
+            if (err) {
+                send.badrequest(link, err);
+                return;
+            }
+
+            send.ok(link.res, { status: "OK" });
+        });
+    });
+};
+
+exports.checkout = function(link) {
+
+    // TODO add checkout with data for non-server carts and without data for server carts
+    // also the operation must receive the cart type to properly perform error handling
+    if (!link.session) {
+        send.badrequest(link, "Only applications using sessions can use a 'server' cart");
+        return;
+    }
+
+    getCollection(link, function(err, collection) {
+
+        if (err) {
+            send.badrequest(link, err);
+            return;
+        }
+
+        // TODO implement the logic and use findAndRemove instead of remove such that
+        // we can process the cart or add it back it something goes wrong
+        console.error("Cart checkout functionality not implemented!!!");
+
+        collection.remove({ _id: link.session.id }, { safe: true }, function(err, results) {
 
             if (err) {
                 send.badrequest(link, err);
@@ -178,12 +210,6 @@ function getCollection(link, callback) {
         });
     });
 }
-
-
-//exports.update = function(link) {
-//    send.ok(link.res, { status: "OK" });
-//};
-
 
 function removeItem(id) {
     for (var i in items) {
