@@ -1,4 +1,4 @@
-define(["github/adioo/bind-cart/v0.0.3/cart"], function(Cart) {
+define(["github/adioo/bind-cart/v0.0.4/cart"], function(Cart) {
 
     var self;
 
@@ -11,8 +11,6 @@ define(["github/adioo/bind-cart/v0.0.3/cart"], function(Cart) {
             delete: "remove"
         }
 
-        this.lang = "de";
-        //config.options.type = "server";
         self = Cart(this, config);
     }
 

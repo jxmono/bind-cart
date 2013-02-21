@@ -7,8 +7,8 @@ var Db = mongo.Db;
 var dataSources = {
     cartDS: {
         type: "mongo",
-        db: "truckshop",
-        collection: "cart"
+        db: "aktionshop",
+        collection: "carts"
     }
 }
 
@@ -84,7 +84,6 @@ function getCart(collection, link, callback) {
 
         // we must create a new cart
         collection.insert({ _id: link.session.id, items: {} }, function(err, results) {
-debugger;
 
             if (err) { return callback(err); }
 

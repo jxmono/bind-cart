@@ -1,4 +1,4 @@
-define(["github/adioo/bind/v0.2.1/bind", "github/adioo/events/v0.1.2/events", "/jquery.js"], function(Bind, Events) {
+define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/jquery.js"], function(Bind, Events) {
 
     function Cart(module) {
 
@@ -376,6 +376,15 @@ define(["github/adioo/bind/v0.2.1/bind", "github/adioo/events/v0.1.2/events", "/
             return value;
         }
 
+        function emptyCart() {
+            $("." + config.options.classes.item, self.dom).each(function() {
+                var item = {
+                    _id: $(this).attr("id")
+                }
+                removeItem(item);
+            });
+        }
+
         function removeItem(itemData) {
             showError();
 
@@ -437,6 +446,7 @@ define(["github/adioo/bind/v0.2.1/bind", "github/adioo/events/v0.1.2/events", "/
             read: read,
             addItem: addItem,
             removeItem: removeItem,
+            emptyCart: emptyCart,
             checkout: checkout,
             show: show,
             hide: hide
