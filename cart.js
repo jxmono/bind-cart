@@ -16,6 +16,9 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                 config.options.cookie = "cart";
             }
 
+            config.options.priceKey = config.options.priceKey || "price";
+            config.options.quantityKey = config.options.quantityKey || "quantity";
+
             config.template.binds = config.template.binds || [];
 
             var optClasses = config.options.classes || {}
@@ -120,7 +123,7 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                 // TODO where do we know the key is the _id
                 var existingItem = container.find("#" + item._id);
 
-                // we only need an increment
+                // new item type in the cart
                 if (!existingItem.length) {
 
                     var newItem = $(template).clone();
@@ -140,17 +143,18 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                     existingItem = container.find("#" + item._id);
                 }
 
+                var qKey = config.options.quantityKey;
                 existingItem.find(".quantity").each(function() {
 
                     var elem = $(this);
 
                     switch (this.tagName) {
                         case "INPUT":
-                            elem.attr("value", item.quantity);
-                            elem.val(item.quantity);
+                            elem.attr("value", item[qKey]);
+                            elem.val(item[qKey]);
                             break;
                         default:
-                            elem.text(quantity);
+                            elem.text(item[qKey]);
                     }
                 });
 
@@ -230,6 +234,7 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                         return;
                     }
                     render.call(self, items);
+                    updateTotal();
                 });
             }
         }
@@ -268,14 +273,14 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                 for (var i in cart) {
                     if (cart[i]._id === item._id) {
                         // TODO support incomming item.quantity
-                        ++(cart[i].quantity);
+                        ++(cart[i][config.options.quantityKey]);
                         item = cart[i];
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                    item.quantity = 1;
+                    item[config.options.quantityKey] = 1;
                     cart.push(item);
                     item = cart[cart.length - 1];
                 }
@@ -294,7 +299,7 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                     var found = false;
                     for (var i in items) {
                         if (items[i]._id === confirmedItem._id) {
-                            items[i].confirmedItem;
+                            items[i] = confirmedItem;
                             found = true;
                         }
                     }
@@ -311,6 +316,8 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                 // TODO in memory type the quantity is saved in the memory object and will
                 // be reused later, which is wrong
                 var newItem = {};
+                var qKey = config.options.quantityKey;
+
                 for (var i in item) {
                     newItem[i] = item[i];
                 }
@@ -320,13 +327,13 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                 for (var i in items) {
                     if (items[i]._id === item._id) {
                         item = items[i];
-                        ++(item.quantity);
+                        ++(item[qKey]);
                         found = true;
                     }
                 }
 
                 if (!found) {
-                    item.quantity = 1;
+                    item[qKey] = 1;
                     items.push(item);
                 }
 
@@ -348,7 +355,23 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                     return;
                 }
                 renderItem(item);
+                updateTotal();
             });
+        }
+
+        function updateTotal() {
+            var total = 0;
+            for (var i in items) {
+                var priceStr = items[i][config.options.priceKey];
+                var quantityStr = items[i][config.options.quantityKey];
+                var price = parseInt(priceStr);
+                var quantity = parseInt(quantityStr);
+
+                if (!isNaN(price) && !isNaN(quantity)) {
+                    total += price * quantity;
+                }
+            }
+            $("#total", self.dom).text(total.toFixed(2));
         }
 
         function readQuantityFromItem(elem) {
@@ -391,6 +414,7 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
             function removeUiItem() {
                 // TODO where do we get the _id key from?
                 container.find("#" + itemData._id).remove();
+                updateTotal();
 
                 // if no more items, show empty cart
                 if (container.find("." + config.options.classes.item).length == 0) {
@@ -398,20 +422,33 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                 }
             }
 
+            function removeCacheItem() {
+                var newItems = [];
+                for (var i in items) {
+                    if (items[i]._id !== itemData._id) {
+                        newItems.push(items[i]);
+                    }
+                }
+                items = newItems;
+                updateTotal();
+            }
+
             switch (config.options.type) {
                 case "server":
                     self.link(config.crud.delete, { data: { _id: itemData._id } }, function(err, data) {
                         if (err) { return; }
                         removeUiItem();
+                        removeCacheItem();
                     });
                     break;
-            
+
                 case "memory":
                     // a memory-based cart should not make any requests, just remove the item
                     removeUiItem();
+                    removeCacheItem();
                     // and show an empty cart when no more items in it
-                    var items = container.find("." + config.options.classes.item);
-                    showEmpty(!items.length);
+                    var itemElems = container.find("." + config.options.classes.item);
+                    showEmpty(!itemElems.length);
                     break;
 
                 case "cookie":
@@ -429,6 +466,7 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                     $.cookie("cart", cart, { path: "/"});
                     // and also remove the item from the UI
                     removeUiItem();
+                    removeCacheItem();
                     break;
             }
         }

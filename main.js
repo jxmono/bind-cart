@@ -1,4 +1,4 @@
-define(["github/adioo/bind-cart/v0.0.4/cart"], function(Cart) {
+define(["github/adioo/bind-cart/dev/cart"], function(Cart) {
 
     var self;
 
