@@ -244,6 +244,7 @@ define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/
                 $("." + config.options.classes.empty, self.dom).show();
                 $("." + config.options.classes.content, self.dom).hide();
                 $("." + config.options.classes.confirm, self.dom).hide();
+                $(".agb", self.dom).get(0).checked = false;
             } else {
                 $("." + config.options.classes.empty, self.dom).hide();
                 $("." + config.options.classes.content, self.dom).show();
