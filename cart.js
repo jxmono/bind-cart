@@ -1,4 +1,4 @@
-define(["github/adioo/bind/v0.2.2/bind", "github/adioo/events/v0.1.2/events", "/jquery.js"], function(Bind, Events) {
+define(["github/adioo/bind/v0.2.5/bind", "github/adioo/events/v0.1.2/events", "/jquery.js"], function(Bind, Events) {
 
     function Cart(module) {
 

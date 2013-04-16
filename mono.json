@@ -4,7 +4,7 @@
     "name": "bind-cart",
     "main": "main.js",
     "dependencies": {
-        "github/adioo/bind": "v0.2.2",
+        "github/adioo/bind": "v0.2.5",
         "github/adioo/events": "v0.1.2"
     },
     "operations": [
