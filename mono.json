@@ -1,6 +1,6 @@
 {
     "source": "github",
-    "owner": "adioo",
+    "owner": "jillix",
     "name": "bind-cart",
     "main": "main.js",
     "dependencies": {
