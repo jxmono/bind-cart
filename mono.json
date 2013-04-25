@@ -4,8 +4,8 @@
     "name": "bind-cart",
     "main": "main.js",
     "dependencies": {
-        "github/adioo/bind": "v0.2.5",
-        "github/adioo/events": "v0.1.2"
+        "github/jillix/bind": "v0.1.0",
+        "github/jillix/events": "v0.1.0"
     },
     "operations": [
         { "file": "operations.js", "function": "create" },
