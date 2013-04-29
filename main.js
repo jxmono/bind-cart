@@ -1,19 +1,16 @@
-define(["github/adioo/bind-cart/dev/cart"], function(Cart) {
+var Cart = require('github/jillix/cart');
 
-    var self;
+module.exports = function(config) {
 
-    function init(config) {
+    var self = this;
 
-        config.crud = {
-            create: "create",
-            read:   "read",
-            update: "update",
-            delete: "remove"
-        }
-
-        self = Cart(this, config);
+    config.crud = {
+        create: 'create',
+        read:   'read',
+        update: 'update',
+        delete: 'remove'
     }
 
-    return init;
-});
+    self = Cart(this, config);
+};
 
