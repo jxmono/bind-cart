@@ -2,13 +2,13 @@
     "source": "github",
     "owner": "jillix",
     "name": "bind-cart",
-    "dependencies": {
+    "dependencies": [
         "/main.js",
         "/cart.js",
         "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js",
         "github/jillix/bind/v0.1.0",
         "github/jillix/events/v0.1.0"
-    },
+    ],
     "operations": [
         { "file": "operations.js", "function": "create" },
         { "file": "operations.js", "function": "read" },
