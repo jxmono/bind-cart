@@ -1,4 +1,4 @@
-var Cart = require('github/jillix/cart');
+var Cart = require('./cart');
 
 module.exports = function(config) {
 
