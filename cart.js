@@ -153,6 +153,20 @@ function Cart(module) {
                     case "INPUT":
                         elem.attr("value", item[qKey]);
                         elem.val(item[qKey]);
+                        elem.on("change", function() {
+                            var newVal = parseInt($(this).val());
+                            if (isNaN(newVal) || newVal < 0) {
+                                $(this).val(item.quantity);
+                            } else if (newVal === 0) {
+                                existingItem.fadeOut();
+                                item.quantity = newVal;
+                                removeItem(item);
+                            } else {
+                                // TODO send update request to the server
+                                item.quantity = newVal;
+                                updateTotal();
+                            }
+                        });
                         break;
                     default:
                         elem.text(item[qKey]);
@@ -228,7 +242,7 @@ function Cart(module) {
         clearList();
 
         var reader = readFrom[config.options.type];
-        if (render) {
+        if (reader) {
             reader.call(self, function(err, items) {
                 if (err) {
                     showError(JSON.stringify(err));
