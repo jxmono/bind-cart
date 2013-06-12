@@ -151,22 +151,26 @@ function Cart(module) {
 
                 switch (this.tagName) {
                     case "INPUT":
+                        var initialAdd = elem.val() == 0;
                         elem.attr("value", item[qKey]);
                         elem.val(item[qKey]);
-                        elem.on("change", function() {
-                            var newVal = parseInt($(this).val());
-                            if (isNaN(newVal) || newVal < 0) {
-                                $(this).val(item.quantity);
-                            } else if (newVal === 0) {
-                                existingItem.fadeOut();
-                                item.quantity = newVal;
-                                removeItem(item);
-                            } else {
-                                // TODO send update request to the server
-                                item.quantity = newVal;
-                                updateTotal();
-                            }
-                        });
+                        if (initialAdd) {
+                            elem.on("change", function() {
+                                var newVal = parseInt($(this).val());
+                                if (isNaN(newVal) || newVal < 0) {
+                                    $(this).val(item.quantity);
+                                } else if (newVal === 0) {
+                                    existingItem.fadeOut(function() {
+                                        item.quantity = newVal;
+                                        removeItem(item);
+                                    });
+                                } else {
+                                    // TODO send update request to the server
+                                    item.quantity = newVal;
+                                    updateTotal();
+                                }
+                            });
+                        }
                         break;
                     default:
                         elem.text(item[qKey]);
