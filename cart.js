@@ -165,8 +165,8 @@ function Cart(module) {
                                         removeItem(item);
                                     });
                                 } else {
-                                    // TODO send update request to the server
                                     item.quantity = newVal;
+                                    updateItem(item);
                                     updateTotal();
                                 }
                             });
@@ -428,6 +428,13 @@ function Cart(module) {
         });
     }
 
+    function updateItem (item) {
+
+        self.link(config.crud.update, { data: item }, function (err, data) {
+            // do something with err & data
+        });
+    }
+
     function removeItem(itemData) {
         showError();
 
@@ -503,6 +510,7 @@ function Cart(module) {
         init: init,
         read: read,
         addItem: addItem,
+        updateItem: updateItem,
         removeItem: removeItem,
         emptyCart: emptyCart,
         checkout: checkout,
@@ -523,4 +531,3 @@ module.exports = function(module, config) {
 
     return cart;
 };
-

@@ -13,4 +13,3 @@ module.exports = function(config) {
 
     self = Cart(this, config);
 };
-

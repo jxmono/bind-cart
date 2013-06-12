@@ -42,6 +42,10 @@ exports.create = function(link) {
                     var data = link.data;
                     data.quantity = data.quantity || 1;
 
+                    if (isNaN(data.quantity) || data.quantity < 1) {
+                        data.quantity = 1;
+                    }
+
                     var items = cart.items;
                     if (items[data._id]) {
                         data.quantity = items[data._id].quantity + data.quantity;
@@ -130,6 +134,67 @@ exports.read = function(link) {
                     }
 
                     link.send(200, cart ? cart.items : {});
+                });
+            });
+        });
+    });
+};
+
+exports.update = function(link) {
+
+    if (!link.session._sid) {
+        link.send(400, "You are not logged in.");
+        return;
+    }
+
+    if (!link.data) {
+        link.send(400, "Missing data.");
+        return;
+    }
+
+    if (!link.data._id) {
+        link.send(400, "Missing mongo id.");
+        return;
+    }
+
+    M.datasource.resolve(link.params.ds, function(err, ds) {
+
+        if (err) {
+            link.send(400, err);
+            return;
+        }
+
+        M.database.open(ds, function(err, db) {
+
+            if (err) {
+                link.send(400, err);
+                return;
+            }
+
+            db.collection(ds.collection, function(err, collection) {
+
+                if (err) {
+                    link.send(400, err);
+                    return;
+                }
+
+                var data = link.data || {};
+
+                var set = {};
+                set["items." + data._id] = data;
+
+                collection.update({ _id: link.session._sid }, { $set: set }, function(err, results) {
+
+                    if (err) {
+                        link.send(400, err);
+                        return;
+                    }
+
+                    if (results != 1) {
+                        return console.error("Could not update the item from the cart.");
+                    }
+
+                    link.send(200);
                 });
             });
         });
