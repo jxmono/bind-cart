@@ -541,4 +541,3 @@ module.exports = function(module, config) {
 
     return cart;
 };
-
