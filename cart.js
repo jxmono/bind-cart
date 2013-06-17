@@ -156,18 +156,20 @@ function Cart(module) {
                         elem.val(item[qKey]);
                         if (initialAdd) {
                             elem.on("change", function() {
+                                blockCart();
                                 var newVal = parseInt($(this).val());
                                 if (isNaN(newVal) || newVal < 0) {
                                     $(this).val(item.quantity);
+                                    unblockCart();
                                 } else if (newVal === 0) {
                                     existingItem.fadeOut(function() {
                                         item.quantity = newVal;
                                         removeItem(item);
+                                        unblockCart();
                                     });
                                 } else {
-                                    // TODO send update request to the server
                                     item.quantity = newVal;
-                                    updateTotal();
+                                    updateItem(item);
                                 }
                             });
                         }
@@ -180,6 +182,14 @@ function Cart(module) {
             return;
         }
     };
+
+    function blockCart() {
+        container.find('input').prop('disabled', true);
+    }
+
+    function unblockCart() {
+        container.find('input').prop('disabled', false);
+    }
 
     function render(items) {
         if (!items || !items.length) {
@@ -428,6 +438,13 @@ function Cart(module) {
         });
     }
 
+    function updateItem(item) {
+        self.link(config.crud.update, { data: item }, function (err, data) {
+            updateTotal();
+            unblockCart();
+        });
+    }
+
     function removeItem(itemData) {
         showError();
 
@@ -503,6 +520,7 @@ function Cart(module) {
         init: init,
         read: read,
         addItem: addItem,
+        updateItem: updateItem,
         removeItem: removeItem,
         emptyCart: emptyCart,
         checkout: checkout,
