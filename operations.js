@@ -1,76 +1,90 @@
 
+function assureSession(link, callback) {
+
+    if (link.session._sid) {
+        return callback(null);
+    }
+
+    M.session.start(link, link.session._rid, -1, link.session._loc, function(err, session) {
+        return callback(null);
+    });
+}
+
 exports.create = function(link) {
 
-    if (!link.session._sid) {
-        link.send(401, "You must log in before adding items to the cart");
-        return;
-    }
+    assureSession(link, function() {
 
-    if (!link.data) {
-        link.send(400, { status: "Missing data" });
-        return;
-    }
-
-    M.datasource.resolve(link.params.ds, function(err, ds) {
-
-        if (err) {
-            link.send(400, err);
+        if (!link.session._sid) {
+            link.send(500, "Could not create a session for your cart");
             return;
         }
 
-        M.database.open(ds, function(err, db) {
+        if (!link.data) {
+            link.send(400, { status: "Missing data" });
+            return;
+        }
+
+        M.datasource.resolve(link.params.ds, function(err, ds) {
 
             if (err) {
                 link.send(400, err);
                 return;
             }
 
-            db.collection(ds.collection, function(err, collection) {
+            M.database.open(ds, function(err, db) {
 
                 if (err) {
                     link.send(400, err);
                     return;
                 }
 
-                getCart(collection, link.session._sid, function(err, cart) {
+                db.collection(ds.collection, function(err, collection) {
 
                     if (err) {
                         link.send(400, err);
                         return;
                     }
 
-                    var data = link.data;
-                    data.quantity = data.quantity || 1;
-
-                    if (isNaN(data.quantity) || data.quantity < 1) {
-                        data.quantity = 1;
-                    }
-
-                    var items = cart.items;
-                    if (items[data._id]) {
-                        data.quantity = items[data._id].quantity + data.quantity;
-                    }
-
-                    var set = {};
-                    set["items." + data._id] = data;
-
-                    collection.update({ _id: cart._id }, { $set: set }, { safe: true }, function(err, results) {
+                    getCart(collection, link.session._sid, function(err, cart) {
 
                         if (err) {
                             link.send(400, err);
                             return;
                         }
 
-                        if (results != 1) {
-                            return console.error("Could not add item to the cart.");
+                        var data = link.data;
+                        data.quantity = data.quantity || 1;
+
+                        if (isNaN(data.quantity) || data.quantity < 1) {
+                            data.quantity = 1;
                         }
 
-                        link.send(200, data);
+                        var items = cart.items;
+                        if (items[data._id]) {
+                            data.quantity = items[data._id].quantity + data.quantity;
+                        }
+
+                        var set = {};
+                        set["items." + data._id] = data;
+
+                        collection.update({ _id: cart._id }, { $set: set }, { safe: true }, function(err, results) {
+
+                            if (err) {
+                                link.send(400, err);
+                                return;
+                            }
+
+                            if (results != 1) {
+                                return console.error("Could not add item to the cart.");
+                            }
+
+                            link.send(200, data);
+                        });
                     });
                 });
             });
         });
-    });
+    })
 };
 
 function getCart(collection, cid, callback) {
