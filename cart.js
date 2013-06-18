@@ -108,7 +108,7 @@ function Cart(module) {
         var agb = $(".agb", self.dom).find("input").andSelf().find("input[type='checkbox']");
         if (agb.length) {
             if (agb.is(":checked")) {
-                agb.get(0).checked = false;
+                agb.first().prop('checked', false);
                 checkoutDone();
             }
             else {
@@ -273,7 +273,7 @@ function Cart(module) {
             $("." + config.options.classes.empty, self.dom).show();
             $("." + config.options.classes.content, self.dom).hide();
             $("." + config.options.classes.confirm, self.dom).hide();
-            $(".agb", self.dom).get(0).checked = false;
+            $(".agb", self.dom).find("input[type='checkbox']").first().prop('checked', false);
         } else {
             $("." + config.options.classes.empty, self.dom).hide();
             $("." + config.options.classes.content, self.dom).show();
@@ -541,3 +541,4 @@ module.exports = function(module, config) {
 
     return cart;
 };
+
