@@ -140,6 +140,18 @@ function Cart(module) {
                     Bind.call(self, bindObj, item);
                 }
 
+                if (item.amountError) {
+
+                    debugger;
+                    showError(item.amountError);
+
+                    // var p = $("<p>");
+                    // p.text(item.amountError);
+                    // p.addClass("alert")
+                    //  .addClass("alert-error");
+                    // newItem.after(p);
+                }
+
                 // now there should be an element with this id
                 existingItem = container.find("#" + item._id);
             }
@@ -240,7 +252,13 @@ function Cart(module) {
             callback(null, items);
         },
         server: function(callback) {
-            self.link(config.crud.read, function(err, data) {
+            var options = {
+                data: {
+                    amount: config.options.amount
+                }
+            };
+
+            self.link(config.crud.read, options, function(err, data) {
                 if (err) { return callback(err); }
                 items = [];
                 for (var i in data) {
@@ -440,8 +458,9 @@ function Cart(module) {
 
     function updateItem(item) {
         self.link(config.crud.update, { data: item }, function (err, data) {
-            updateTotal();
             unblockCart();
+            showError(err);
+            updateTotal();
         });
     }
 
@@ -541,4 +560,3 @@ module.exports = function(module, config) {
 
     return cart;
 };
-

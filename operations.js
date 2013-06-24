@@ -24,7 +24,7 @@ exports.create = function(link) {
             return;
         }
 
-        M.datasource.resolve(link.params.ds, function(err, ds) {
+        M.datasource.resolve(link.params.dsCarts, function(err, ds) {
 
             if (err) {
                 link.send(400, err);
@@ -117,7 +117,7 @@ exports.read = function(link) {
         return;
     }
 
-    M.datasource.resolve(link.params.ds, function(err, ds) {
+    M.datasource.resolve(link.params.dsCarts, function(err, ds) {
 
         if (err) {
             link.send(400, err);
@@ -148,6 +148,7 @@ exports.read = function(link) {
                     }
 
                     link.send(200, cart ? cart.items : {});
+
                 });
             });
         });
@@ -171,7 +172,7 @@ exports.update = function(link) {
         return;
     }
 
-    M.datasource.resolve(link.params.ds, function(err, ds) {
+    M.datasource.resolve(link.params.dsCarts, function(err, ds) {
 
         if (err) {
             link.send(400, err);
@@ -197,18 +198,26 @@ exports.update = function(link) {
                 var set = {};
                 set["items." + data._id] = data;
 
-                collection.update({ _id: link.session._sid }, { $set: set }, function(err, results) {
+                verifyStock(link.params.dsArticles, data, function (err) {
 
                     if (err) {
                         link.send(400, err);
                         return;
                     }
 
-                    if (results != 1) {
-                        return console.error("Could not update the item from the cart.");
-                    }
+                    collection.update({ _id: link.session._sid }, { $set: set }, function(err, results) {
 
-                    link.send(200);
+                        if (err) {
+                            link.send(400, err);
+                            return;
+                        }
+
+                        if (results != 1) {
+                            return console.error("Could not update the item from the cart.");
+                        }
+
+                        link.send(200);
+                    });
                 });
             });
         });
@@ -227,7 +236,7 @@ exports.remove = function(link) {
         return;
     }
 
-    M.datasource.resolve(link.params.ds, function(err, ds) {
+    M.datasource.resolve(link.params.dsCarts, function(err, ds) {
 
         if (err) {
             link.send(400, err);
@@ -315,3 +324,51 @@ exports.checkout = function(link) {
     });
 };
 
+
+/*
+ *  Verify the stock
+ *
+ *  Returns an error if too much items are bought
+ *  (more than in stock)
+ * */
+function verifyStock (dsArticles, item, callback) {
+
+    M.datasource.resolve(dsArticles, function(err, ds) {
+
+        if (err) {
+            callback(err);
+            return;
+        }
+
+        M.database.open(ds, function(err, db) {
+
+            if (err) {
+                callback(err);
+                return;
+            }
+
+            db.collection(ds.collection, function(err, collection) {
+
+                if (err) {
+                    callback(err);
+                    return;
+                }
+
+                var mId = M.mongo.ObjectID(item._id);
+                collection.findOne({ "_id": mId }, function(err, article) {
+
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+
+                    if (article.amount - item.quantity < 0) {
+                        return callback("We have only " + article.amount + " items of " + item.name + " in stock. You've chosen " + item.quantity + ".");
+                    }
+
+                    callback(null);
+                });
+            });
+        });
+    });
+}
