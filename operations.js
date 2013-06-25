@@ -67,18 +67,26 @@ exports.create = function(link) {
                         var set = {};
                         set["items." + data._id] = data;
 
-                        collection.update({ _id: cart._id }, { $set: set }, { safe: true }, function(err, results) {
+                        verifyStock(link.params.dsArticles, data, function (err) {
 
                             if (err) {
                                 link.send(400, err);
                                 return;
                             }
 
-                            if (results != 1) {
-                                return console.error("Could not add item to the cart.");
-                            }
+                            collection.update({ _id: cart._id }, { $set: set }, { safe: true }, function(err, results) {
 
-                            link.send(200, data);
+                                if (err) {
+                                    link.send(400, err);
+                                    return;
+                                }
+
+                                if (results != 1) {
+                                    return console.error("Could not add item to the cart.");
+                                }
+
+                                link.send(200, data);
+                            });
                         });
                     });
                 });
