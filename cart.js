@@ -19,6 +19,7 @@ function Cart(module) {
 
         config.options.priceKey = config.options.priceKey || "price";
         config.options.quantityKey = config.options.quantityKey || "quantity";
+        config.options.idKey = config.options.idKey || "id";
 
         config.template.binds = config.template.binds || [];
 
@@ -412,14 +413,23 @@ function Cart(module) {
         for (var i in items) {
             var priceStr = items[i][config.options.priceKey];
             var quantityStr = items[i][config.options.quantityKey];
-            var price = parseInt(priceStr) / 100;
+            var id = items[i][config.options.idKey];
+            var price = parseInt(priceStr);
             var quantity = parseInt(quantityStr);
 
             if (!isNaN(price) && !isNaN(quantity)) {
-                total += price * quantity;
+                var lineTotal = price * quantity;
+                total += lineTotal;
+                if (id) {
+                    $("#" + id, self.dom).find(".total").text(toPriceString(lineTotal));
+                }
             }
         }
-        $("#total", self.dom).text(total.toFixed(2));
+        $("#total", self.dom).text(toPriceString(total));
+    }
+
+    function toPriceString(value) {
+        return (value / 100).toFixed(2);
     }
 
     function readQuantityFromItem(elem) {
