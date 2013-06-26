@@ -412,7 +412,7 @@ function Cart(module) {
         for (var i in items) {
             var priceStr = items[i][config.options.priceKey];
             var quantityStr = items[i][config.options.quantityKey];
-            var price = parseInt(priceStr);
+            var price = parseInt(priceStr) / 100;
             var quantity = parseInt(quantityStr);
 
             if (!isNaN(price) && !isNaN(quantity)) {
@@ -560,3 +560,4 @@ module.exports = function(module, config) {
 
     return cart;
 };
+
