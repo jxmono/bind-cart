@@ -232,6 +232,66 @@ exports.update = function(link) {
     });
 };
 
+exports.computeCosts = function(link) {
+
+    // for public sessions, we return an empty cart
+    if (!link.session._sid) {
+        link.send(200, []);
+        return;
+    }
+
+    if (!link.params.computeCostsFile) {
+        link.send(400, "Missing computeCosts file.");
+        return;
+    }
+
+    M.datasource.resolve(link.params.dsCarts, function(err, ds) {
+
+        if (err) {
+            link.send(400, err);
+            return;
+        }
+
+        M.database.open(ds, function(err, db) {
+
+            if (err) {
+                link.send(400, err);
+                return;
+            }
+
+            db.collection(ds.collection, function(err, collection) {
+
+                if (err) {
+                    link.send(400, err);
+                    return;
+                }
+
+                var data = link.data || {};
+
+                collection.findOne({ _id: link.session._sid }, function(err, cart) {
+
+                    if (err) {
+                        link.send(400, err);
+                        return;
+                    }
+
+                    // TODO
+                    // require app script
+                    // get ship
+                    // compute vat, total
+
+                    var response = {
+                        total: 100,
+                        vat: 20,
+                        ship: 5
+                    };
+
+                    link.send(200, response);
+                });
+            });
+        });
+    });
+};
 exports.remove = function(link) {
 
     if (!link.session._uid) {
