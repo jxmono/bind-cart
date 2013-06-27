@@ -241,7 +241,7 @@ exports.computeCosts = function(link) {
     }
 
     if (!link.params.computeCustomFile) {
-        link.send(400, "Missing computeShip file.");
+        link.send(400, "Missing computeCustomFile.");
         return;
     }
 
@@ -288,7 +288,7 @@ exports.computeCosts = function(link) {
                         costs.subtotal += item.price * item.quantity;
                     }
 
-                    Cusom.getCost(costs, link, items, function (err, costs) {
+                    Custom.getCost(costs, link, cart.items, function (err, costs) {
 
                         if (err) {
                             link.send(400, err);
