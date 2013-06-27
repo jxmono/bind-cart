@@ -410,10 +410,15 @@ function Cart(module) {
 
                     if (err) { showError(err); }
 
-                    $("#subtotal", self.dom).text(toPriceString(costs.subtotal));
-                    $("#vat", self.dom).text(toPriceString(costs.vat));
-                    $("#ship", self.dom).text(toPriceString(costs.ship));
-                    $("#total", self.dom).text(toPriceString(costs.total));
+                    var binds = config.oncompute.total;
+                    for (var i in binds) {
+                        Bind.call(self, binds[i], costs);
+                    }
+
+                    // $("#subtotal", self.dom).text(toPriceString(costs.subtotal));
+                    // $("#vat", self.dom).text(toPriceString(costs.vat));
+                    // $("#ship", self.dom).text(toPriceString(costs.ship));
+                    // $("#total", self.dom).text(toPriceString(costs.total));
                 });
                 break
 
