@@ -284,6 +284,11 @@ exports.computeCosts = function(link) {
 
                     costs.items = {};
 
+                    if (!cart) {
+                        link.send(200, costs);
+                        return;
+                    }
+
                     for (var i in cart.items) {
                         var item = cart.items[i];
                         var itemTotal = item.price * item.quantity;
