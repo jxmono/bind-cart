@@ -404,7 +404,6 @@ function Cart(module) {
 
         switch (config.options.type) {
 
-
             case "server":
                 self.link("computeCosts", function (err, costs) {
 
@@ -412,8 +411,24 @@ function Cart(module) {
 
                     if (config.oncompute && config.oncompute.total) {
                         var binds = config.oncompute.total;
+
                         for (var i in binds) {
                             Bind.call(self, binds[i], costs);
+                        }
+                    }
+
+                    if (config.oncompute && config.oncompute.item) {
+
+                        // each item from cart (mongo id)
+                        for (var itemId in costs.items) {
+
+                            // binds
+                            var binds = config.oncompute.item;
+
+                            for (var i in binds) {
+                                binds[i].context = $("#" + itemId, self.dom);
+                                Bind.call(self, binds[i], costs.items[itemId]);
+                            }
                         }
                     }
                 });

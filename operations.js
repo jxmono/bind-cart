@@ -282,10 +282,17 @@ exports.computeCosts = function(link) {
                         total: 0
                     };
 
+                    costs.items = {};
+
                     for (var i in cart.items) {
                         var item = cart.items[i];
+                        var itemTotal = item.price * item.quantity;
 
-                        costs.subtotal += item.price * item.quantity;
+                        costs.items[i] = {
+                            total: itemTotal
+                        };
+
+                        costs.subtotal += itemTotal;
                     }
 
                     Custom.getCost(costs, link, cart.items, function (err, costs) {
@@ -294,6 +301,8 @@ exports.computeCosts = function(link) {
                             link.send(400, err);
                             return;
                         }
+
+
 
                         link.send(200, costs);
                     });
