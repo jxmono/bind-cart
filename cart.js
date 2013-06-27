@@ -1,4 +1,3 @@
-M.wrap('github/jillix/bind-cart/dev/cart.js', function (require, module, exports) {
 var Bind = require("github/jillix/bind");
 var Events = require("github/jillix/events");
 
@@ -582,6 +581,3 @@ module.exports = function(module, config) {
 
     return cart;
 };
-
-
-return module; });
