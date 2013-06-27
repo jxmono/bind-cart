@@ -240,8 +240,8 @@ exports.computeCosts = function(link) {
         return;
     }
 
-    if (!link.params.computeCostsFile) {
-        link.send(400, "Missing computeCosts file.");
+    if (!link.params.computeShipFile) {
+        link.send(400, "Missing computeShip file.");
         return;
     }
 
@@ -275,18 +275,37 @@ exports.computeCosts = function(link) {
                         return;
                     }
 
-                    // TODO
-                    // require app script
-                    // get ship
-                    // compute vat, total
+                    var Ship = require(M.app.getPath() + '/' + link.params.computeShipFile);
 
-                    var response = {
-                        total: 100,
-                        vat: 20,
-                        ship: 5
-                    };
+                    var costs = {
+                        subtotal: 0,
+                        total: 0,
+                        vat: 0,
+                        ship: 0
+                    }
 
-                    link.send(200, response);
+                    for (var i in cart.items) {
+                        var item = cart.items[i];
+
+                        var totalPerItemWithoutVat = item.price * item.quantity;
+                        costs.subtotal += totalPerItemWithoutVat;
+                        var vatForItem = totalPerItemWithoutVat * (item.vat / 100);
+
+                        costs.vat += vatForItem;
+                    }
+
+
+                    Ship.getCost(costs, link, function (err, costs) {
+
+                        if (err) {
+                            link.send(400, err);
+                            return;
+                        }
+
+                        costs.total = costs.subtotal + costs.vat + costs.ship;
+
+                        link.send(200, costs);
+                    });
                 });
             });
         });

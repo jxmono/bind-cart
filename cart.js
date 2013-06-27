@@ -1,3 +1,4 @@
+M.wrap('github/jillix/bind-cart/dev/cart.js', function (require, module, exports) {
 var Bind = require("github/jillix/bind");
 var Events = require("github/jillix/events");
 
@@ -142,15 +143,7 @@ function Cart(module) {
                 }
 
                 if (item.amountError) {
-
-                    debugger;
                     showError(item.amountError);
-
-                    // var p = $("<p>");
-                    // p.text(item.amountError);
-                    // p.addClass("alert")
-                    //  .addClass("alert-error");
-                    // newItem.after(p);
                 }
 
                 // now there should be an element with this id
@@ -409,23 +402,42 @@ function Cart(module) {
     }
 
     function updateTotal() {
-        var total = 0;
-        for (var i in items) {
-            var priceStr = items[i][config.options.priceKey];
-            var quantityStr = items[i][config.options.quantityKey];
-            var id = items[i][config.options.idKey];
-            var price = parseInt(priceStr);
-            var quantity = parseInt(quantityStr);
 
-            if (!isNaN(price) && !isNaN(quantity)) {
-                var lineTotal = price * quantity;
-                total += lineTotal;
-                if (id) {
-                    $("#" + id, self.dom).find(".total").text(toPriceString(lineTotal));
+        switch (config.options.type) {
+
+
+            case "server":
+                self.link("computeCosts", function (err, costs) {
+
+                    if (err) { showError(err); }
+
+                    $("#subtotal", self.dom).text(toPriceString(costs.subtotal));
+                    $("#vat", self.dom).text(toPriceString(costs.vat));
+                    $("#ship", self.dom).text(toPriceString(costs.ship));
+                    $("#total", self.dom).text(toPriceString(costs.total));
+                });
+                break
+
+            default:
+                var total = 0;
+                for (var i in items) {
+                    var priceStr = items[i][config.options.priceKey];
+                    var quantityStr = items[i][config.options.quantityKey];
+                    var id = items[i][config.options.idKey];
+                    var price = parseInt(priceStr);
+                    var quantity = parseInt(quantityStr);
+
+                    if (!isNaN(price) && !isNaN(quantity)) {
+                        var lineTotal = price * quantity;
+                        total += lineTotal;
+                        if (id) {
+                            $("#" + id, self.dom).find(".total").text(toPriceString(lineTotal));
+                        }
+                    }
                 }
-            }
+                $("#total", self.dom).text(toPriceString(total));
+                break;
         }
-        $("#total", self.dom).text(toPriceString(total));
     }
 
     function toPriceString(value) {
@@ -571,3 +583,5 @@ module.exports = function(module, config) {
     return cart;
 };
 
+
+return module; });
