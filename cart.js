@@ -91,6 +91,50 @@ function Cart(module) {
         self.read();
     }
 
+    function refresh() {
+
+        var binds = [];
+
+        for (var i in config.controls) {
+            switch (i) {
+                case "add":
+                    binds.push({
+                        target: config.controls[i],
+                        context: ".controls",
+                        on: [{
+                            name: "click",
+                            emit: "requestNewItem"
+                        }]
+                    });
+                    break;
+                case "delete":
+                    binds.push({
+                        target: config.controls[i],
+                        context: ".controls",
+                        on: [{
+                            name: "click",
+                            handler: "removeSelected"
+                        }]
+                    });
+                    break;
+            }
+        }
+
+        // run the internal binds
+        for (var i in binds) {
+            Bind.call(self, binds[i]);
+        }
+
+        // run the binds
+        for (var i in config.binds) {
+            Bind.call(self, config.binds[i]);
+        }
+
+        showEmpty(true);
+
+        self.read();
+    }
+
     // TODO call this from a checkout operation link response if success
     function checkoutDone() {
         clearList();
@@ -575,6 +619,7 @@ function Cart(module) {
 
      return {
         init: init,
+        refresh: refresh,
         read: read,
         addItem: addItem,
         updateItem: updateItem,
