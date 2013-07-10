@@ -307,15 +307,22 @@ exports.computeCosts = function(link) {
                             return;
                         }
 
+                        link.session.set({ cartTotal: costs.total }, function (err) {
 
+                            if (err) {
+                                link.send(400, err);
+                                return;
+                            }
 
-                        link.send(200, costs);
+                            link.send(200, costs);
+                        });
                     });
                 });
             });
         });
     });
 };
+
 exports.remove = function(link) {
 
     if (!link.session._uid) {
