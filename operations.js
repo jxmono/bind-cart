@@ -307,7 +307,10 @@ exports.computeCosts = function(link) {
                             return;
                         }
 
-                        link.session.set({ cartTotal: costs.total }, function (err) {
+                        var checkout = link.session.checkout || {};
+                        checkout.total = costs.total;
+
+                        link.session.set({ cartTotal: checkout }, function (err) {
 
                             if (err) {
                                 link.send(400, err);
