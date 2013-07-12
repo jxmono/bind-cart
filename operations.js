@@ -308,7 +308,7 @@ exports.computeCosts = function(link) {
                         }
 
                         var checkout = link.session.checkout || {};
-                        checkout.total = costs.total;
+                        checkout.costs = costs;
 
                         link.session.set({ checkout: checkout }, function (err) {
 
