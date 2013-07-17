@@ -85,7 +85,18 @@ exports.create = function(link) {
                                     return console.error("Could not add item to the cart.");
                                 }
 
-                                link.send(200, data);
+                                var payments = link.session.payments || {};
+                                payments.orderid = cart._id;
+
+                                link.session.set({ payments: payments }, function (err) {
+
+                                    if (err) {
+                                        link.send(400, err);
+                                        return;
+                                    }
+
+                                    link.send(200, data);
+                                });
                             });
                         });
                     });
@@ -177,6 +188,19 @@ exports.update = function(link) {
 
     if (!link.data._id) {
         link.send(400, "Missing mongo id.");
+        return;
+    }
+
+    var session = link.session;
+    session.checkout = session.checkout || {};
+
+    if (session.checkout.paying) {
+        link.send(400, "You cannot modify the cart while you are paying.");
+        return;
+    }
+
+    if (session.checkout.paid) {
+        link.send(400, "You cannot modify the cart because you've already paid.");
         return;
     }
 
