@@ -345,27 +345,27 @@ function Cart(module) {
     function showError(err) {
         if (!err) {
             $(".error").text("").hide();
+        } else if (config.i18n) {
+            self.emit("message", err, function (err, message) {
+                if (err) { return console.error(err); }
+                showMessage(message);
+            });
         } else {
-
-            if (config.i18n) {
-                self.emit("message", err, function (err, message) {
-                    if (err) { return console.error(err); }
-                    showMessage(message);
-                });
-            } else {
-                showMessage(err);
-            }
+            showMessage(err);
         }
     }
 
     function showMessage(message) {
+
+        try {
+            message = JSON.parse(message);
+        } catch (e) {}
 
         if (typeof message === "object" && message.message && typeof message.params === "object") {
             var err = message;
 
             for (var i in err.params) {
                 err.message = err.message.replace(new RegExp("\{" + i + "+\}", "g"), err.params[i]);
-
             }
 
             message = err.message;
