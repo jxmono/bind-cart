@@ -489,7 +489,15 @@ function verifyStock (dsArticles, item, callback) {
                     }
 
                     if (article.amount - item.quantity < 0) {
-                        return callback("We have only " + article.amount + " items of " + item.name + " in stock. You've chosen " + item.quantity + ".");
+                        var err = {
+                            message: "We have only {0} items of {1} in stock. You've chosen {2}.",
+                            params: [
+                                article.amount,
+                                item.name,
+                                item.quantity
+                            ]
+                        };
+                        return callback(err);
                     }
 
                     callback(null);

@@ -342,12 +342,35 @@ function Cart(module) {
         $("." + config.options.classes.confirm, self.dom).show();
     }
 
-    function showError(message) {
+    function showError(err) {
         if (!message) {
             $(".error").text("").hide();
         } else {
-            $(".error").text(message).show();
+
+            if (config.i18n) {
+                self.emit("message", err, function (err, message) {
+                    if (err) { return console.error(err); }
+                    showMessage(message);
+                });
+            } else {
+                showMessage(message);
+            }
         }
+    }
+
+    function showMessage(message) {
+
+        if (typeof message === "object" && message.message && message.params === "object") {
+            var err = message;
+
+            for (var i in err.params) {
+                err.message.replace(new RegExp("{" + i + "}", "g"), err.params[i]);
+            }
+
+            message = err.message;
+        }
+
+        $(".error").text(message).show();
     }
 
     var adders = {
