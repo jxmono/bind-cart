@@ -343,7 +343,7 @@ function Cart(module) {
     }
 
     function showError(err) {
-        if (!message) {
+        if (!err) {
             $(".error").text("").hide();
         } else {
 
@@ -353,18 +353,19 @@ function Cart(module) {
                     showMessage(message);
                 });
             } else {
-                showMessage(message);
+                showMessage(err);
             }
         }
     }
 
     function showMessage(message) {
 
-        if (typeof message === "object" && message.message && message.params === "object") {
+        if (typeof message === "object" && message.message && typeof message.params === "object") {
             var err = message;
 
             for (var i in err.params) {
-                err.message.replace(new RegExp("{" + i + "}", "g"), err.params[i]);
+                err.message = err.message.replace(new RegExp("\{" + i + "+\}", "g"), err.params[i]);
+
             }
 
             message = err.message;
