@@ -204,7 +204,7 @@ function Cart(module) {
                         elem.attr("value", item[qKey]);
                         elem.val(item[qKey]);
                         if (initialAdd) {
-                            elem.on("change", function() {
+                            elem.on("change click", function() {
                                 blockCart();
                                 var newVal = parseInt($(this).val());
                                 if (isNaN(newVal) || newVal < 0) {
