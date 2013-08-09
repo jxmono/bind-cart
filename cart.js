@@ -361,9 +361,10 @@ function Cart(module) {
             message = JSON.parse(message);
         } catch (e) {}
 
-        if (typeof message === "object" && message.message && typeof message.params === "object") {
+        if (typeof message === "object" && message.message) {
             var err = message;
 
+            err.params = err.params || [];
             for (var i in err.params) {
                 err.message = err.message.replace(new RegExp("\{" + i + "+\}", "g"), err.params[i]);
             }
