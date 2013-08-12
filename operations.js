@@ -236,7 +236,11 @@ exports.computeCosts = function(link) {
                 return;
             }
 
-            var Custom = require(M.app.getPath() + '/' + link.params.computeCustomFile);
+            var Custom;
+
+            try {
+                Custom = require(M.app.getPath() + '/' + link.params.computeCustomFile);
+            } catch (e) { return link.send(400, e.message); }
 
             var costs = {
                 subtotal: 0,
@@ -275,6 +279,52 @@ exports.computeCosts = function(link) {
 
                     if (err) {
                         link.send(400, err);
+                        return;
+                    }
+
+                    // TODO Move to app descriptor
+                    link.params.validateLimits = true;
+
+                    // validate limits if link.params.validateLimits
+                    if (link.params.validateLimits) {
+
+                        getCollection(link.params.dsSettings, function (err, collection) {
+
+                            if (err) {
+                                link.send(400, err);
+                                return;
+                            }
+
+                            collection.findOne({}, function (err, settings) {
+
+                                if (err) {
+                                    link.send(400, err);
+                                    return;
+                                }
+
+                                settings = settings || {};
+                                settings.limits = settings.limits || {};
+                                settings.limits = {
+                                    min: settings.limits.min || 0,
+                                    max: settings.limits.max || 0
+                                }
+
+                                var limits = settings.limits;
+                                if (costs.subtotal && costs.subtotal < limits.min || costs.subtotal > limits.max) {
+                                    costs.error = {
+                                        message: "The subtotal should be between {0} and {1} {2}.",
+                                        params: [
+                                            (limits.min / 100).toFixed(2),
+                                            (limits.max / 100).toFixed(2),
+                                            "CHF"
+                                        ]
+                                    };
+                                }
+
+                                link.send(200, costs);
+                            });
+                        });
+
                         return;
                     }
 
@@ -353,12 +403,6 @@ exports.checkout = function(link) {
         });
     });
 };
-
-exports.validateLimits = function (link) {
-    // TODO
-    link.send(200);
-};
-
 
 /*
  *  Verify the stock

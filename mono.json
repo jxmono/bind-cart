@@ -15,7 +15,6 @@
         { "file": "operations.js", "function": "update" },
         { "file": "operations.js", "function": "remove" },
         { "file": "operations.js", "function": "computeCosts" },
-        { "file": "operations.js", "function": "validateLimits" },
         { "file": "operations.js", "function": "checkout" }
     ]
 }

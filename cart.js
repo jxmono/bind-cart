@@ -86,6 +86,7 @@ function Cart(module) {
 
         Events.call(self, config);
 
+        $(self.dom).on("click", "[disabled]", function () { return false; });
         showEmpty(true);
 
         self.read();
@@ -314,7 +315,7 @@ function Cart(module) {
         if (reader) {
             reader.call(self, function(err, items) {
                 if (err) {
-                    showError(JSON.stringify(err));
+                    showError(err);
                     return;
                 }
                 render.call(self, items);
@@ -461,7 +462,7 @@ function Cart(module) {
         }
         adder.call(self, itemData, function(err, item) {
             if (err) {
-                showError(JSON.stringify(err));
+                showError(err);
                 return;
             }
             renderItem(item);
@@ -477,6 +478,10 @@ function Cart(module) {
                 self.link("computeCosts", function (err, costs) {
 
                     if (err) { return showError(err); }
+                    if (costs.error) {
+                        $(".checkout", self.dom).attr("disabled", "true");
+                        showError(costs.error);
+                    }
 
                     if (config.oncompute && config.oncompute.total) {
                         var binds = config.oncompute.total;
@@ -502,14 +507,6 @@ function Cart(module) {
                     }
                 });
 
-                if (config.options.validateLimits) {
-                    self.link("validateLimits", function (err) {
-                        if (err) {
-                            $(".checkout", self.dom).attr("disable", true);
-                            showError(err);
-                        }
-                    });
-                }
                 break
 
             default:
