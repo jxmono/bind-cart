@@ -282,9 +282,6 @@ exports.computeCosts = function(link) {
                         return;
                     }
 
-                    // TODO Move to app descriptor
-                    link.params.validateLimits = true;
-
                     // validate limits if link.params.validateLimits
                     if (link.params.validateLimits) {
 

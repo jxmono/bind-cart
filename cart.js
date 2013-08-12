@@ -343,20 +343,23 @@ function Cart(module) {
         $("." + config.options.classes.confirm, self.dom).show();
     }
 
-    function showError(err) {
+    function showError(err, safe) {
         if (!err) {
             $(".error").text("").hide();
+            $(".checkout", self.dom).removeAttr("disabled");
         } else if (config.i18n) {
             self.emit("message", err, function (err, message) {
                 if (err) { return console.error(err); }
-                showMessage(message);
+                showMessage(message, safe);
             });
         } else {
-            showMessage(err);
+            showMessage(err, safe);
         }
     }
 
-    function showMessage(message) {
+    function showMessage(message, safe) {
+
+        $(".checkout", self.dom).attr("disabled", "disabled");
 
         try {
             message = JSON.parse(message);
@@ -373,7 +376,10 @@ function Cart(module) {
             message = err.message;
         }
 
-        $(".error").text(message).show();
+        var $error = $(".error");
+        if ($error.text() && safe) { return; }
+
+        $error.text(message).show();
     }
 
     var adders = {
@@ -479,8 +485,7 @@ function Cart(module) {
 
                     if (err) { return showError(err); }
                     if (costs.error) {
-                        $(".checkout", self.dom).attr("disabled", "true");
-                        showError(costs.error);
+                        showError(costs.error, true);
                     }
 
                     if (config.oncompute && config.oncompute.total) {
