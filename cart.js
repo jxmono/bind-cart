@@ -476,7 +476,7 @@ function Cart(module) {
             case "server":
                 self.link("computeCosts", function (err, costs) {
 
-                    if (err) { showError(err); }
+                    if (err) { return showError(err); }
 
                     if (config.oncompute && config.oncompute.total) {
                         var binds = config.oncompute.total;
@@ -501,6 +501,15 @@ function Cart(module) {
                         }
                     }
                 });
+
+                if (config.options.validateLimits) {
+                    self.link("validateLimits", function (err) {
+                        if (err) {
+                            $(".checkout", self.dom).attr("disable", true);
+                            showError(err);
+                        }
+                    });
+                }
                 break
 
             default:

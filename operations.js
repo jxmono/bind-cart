@@ -24,80 +24,64 @@ exports.create = function(link) {
             return;
         }
 
-        M.datasource.resolve(link.params.dsCarts, function(err, ds) {
+        getCollection(link.params.dsCarts, function(err, collection) {
 
             if (err) {
                 link.send(400, err);
                 return;
             }
 
-            M.database.open(ds, function(err, db) {
+            getCart(collection, link.session._sid, function(err, cart) {
 
                 if (err) {
                     link.send(400, err);
                     return;
                 }
 
-                db.collection(ds.collection, function(err, collection) {
+                var data = link.data;
+                data.quantity = data.quantity || 1;
+
+                if (isNaN(data.quantity) || data.quantity < 1) {
+                    data.quantity = 1;
+                }
+
+                var items = cart.items;
+                if (items[data._id]) {
+                    data.quantity = items[data._id].quantity + data.quantity;
+                }
+
+                var set = {};
+                set["items." + data._id] = data;
+
+                verifyStock(link.params.dsArticles, data, function (err) {
 
                     if (err) {
                         link.send(400, err);
                         return;
                     }
 
-                    getCart(collection, link.session._sid, function(err, cart) {
+                    collection.update({ _id: cart._id }, { $set: set }, { safe: true }, function(err, results) {
 
                         if (err) {
                             link.send(400, err);
                             return;
                         }
 
-                        var data = link.data;
-                        data.quantity = data.quantity || 1;
-
-                        if (isNaN(data.quantity) || data.quantity < 1) {
-                            data.quantity = 1;
+                        if (results != 1) {
+                            return console.error("Could not add item to the cart.");
                         }
 
-                        var items = cart.items;
-                        if (items[data._id]) {
-                            data.quantity = items[data._id].quantity + data.quantity;
-                        }
+                        var payments = link.session.payments || {};
+                        payments.orderid = cart._id;
 
-                        var set = {};
-                        set["items." + data._id] = data;
-
-                        verifyStock(link.params.dsArticles, data, function (err) {
+                        link.session.set({ payments: payments }, function (err) {
 
                             if (err) {
                                 link.send(400, err);
                                 return;
                             }
 
-                            collection.update({ _id: cart._id }, { $set: set }, { safe: true }, function(err, results) {
-
-                                if (err) {
-                                    link.send(400, err);
-                                    return;
-                                }
-
-                                if (results != 1) {
-                                    return console.error("Could not add item to the cart.");
-                                }
-
-                                var payments = link.session.payments || {};
-                                payments.orderid = cart._id;
-
-                                link.session.set({ payments: payments }, function (err) {
-
-                                    if (err) {
-                                        link.send(400, err);
-                                        return;
-                                    }
-
-                                    link.send(200, data);
-                                });
-                            });
+                            link.send(200, data);
                         });
                     });
                 });
@@ -136,40 +120,23 @@ exports.read = function(link) {
         return;
     }
 
-    M.datasource.resolve(link.params.dsCarts, function(err, ds) {
+    getCollection(link.params.dsCarts, function(err, collection) {
 
         if (err) {
             link.send(400, err);
             return;
         }
 
-        M.database.open(ds, function(err, db) {
+        var data = link.data || {};
+
+        collection.findOne({ _id: link.session._sid }, function(err, cart) {
 
             if (err) {
                 link.send(400, err);
                 return;
             }
 
-            db.collection(ds.collection, function(err, collection) {
-
-                if (err) {
-                    link.send(400, err);
-                    return;
-                }
-
-                var data = link.data || {};
-
-                collection.findOne({ _id: link.session._sid }, function(err, cart) {
-
-                    if (err) {
-                        link.send(400, err);
-                        return;
-                    }
-
-                    link.send(200, cart ? cart.items : {});
-
-                });
-            });
+            link.send(200, cart ? cart.items : {});
         });
     });
 };
@@ -204,53 +171,37 @@ exports.update = function(link) {
         return;
     }
 
-    M.datasource.resolve(link.params.dsCarts, function(err, ds) {
+    getCollection(link.params.dsCarts, function(err, collection) {
 
         if (err) {
             link.send(400, err);
             return;
         }
 
-        M.database.open(ds, function(err, db) {
+        var data = link.data || {};
+
+        var set = {};
+        set["items." + data._id] = data;
+
+        verifyStock(link.params.dsArticles, data, function (err) {
 
             if (err) {
                 link.send(400, err);
                 return;
             }
 
-            db.collection(ds.collection, function(err, collection) {
+            collection.update({ _id: link.session._sid }, { $set: set }, function(err, results) {
 
                 if (err) {
                     link.send(400, err);
                     return;
                 }
 
-                var data = link.data || {};
+                if (results != 1) {
+                    return console.error("Could not update the item from the cart.");
+                }
 
-                var set = {};
-                set["items." + data._id] = data;
-
-                verifyStock(link.params.dsArticles, data, function (err) {
-
-                    if (err) {
-                        link.send(400, err);
-                        return;
-                    }
-
-                    collection.update({ _id: link.session._sid }, { $set: set }, function(err, results) {
-
-                        if (err) {
-                            link.send(400, err);
-                            return;
-                        }
-
-                        if (results != 1) {
-                            return console.error("Could not update the item from the cart.");
-                        }
-
-                        link.send(200);
-                    });
-                });
+                link.send(200);
             });
         });
     });
@@ -269,81 +220,65 @@ exports.computeCosts = function(link) {
         return;
     }
 
-    M.datasource.resolve(link.params.dsCarts, function(err, ds) {
+    getCollection(link.params.dsCarts, function(err, collection) {
 
         if (err) {
             link.send(400, err);
             return;
         }
 
-        M.database.open(ds, function(err, db) {
+        var data = link.data || {};
+
+        collection.findOne({ _id: link.session._sid }, function(err, cart) {
 
             if (err) {
                 link.send(400, err);
                 return;
             }
 
-            db.collection(ds.collection, function(err, collection) {
+            var Custom = require(M.app.getPath() + '/' + link.params.computeCustomFile);
+
+            var costs = {
+                subtotal: 0,
+                total: 0
+            };
+
+            costs.items = {};
+
+            if (!cart) {
+                link.send(200, costs);
+                return;
+            }
+
+            for (var i in cart.items) {
+                var item = cart.items[i];
+                var itemTotal = item.price * item.quantity;
+
+                costs.items[i] = {
+                    total: itemTotal
+                };
+
+                costs.subtotal += itemTotal;
+            }
+
+            Custom.getCost(costs, link, cart.items, function (err, costs) {
 
                 if (err) {
                     link.send(400, err);
                     return;
                 }
 
-                var data = link.data || {};
+                var checkout = link.session.checkout || {};
+                checkout.costs = costs;
 
-                collection.findOne({ _id: link.session._sid }, function(err, cart) {
+                link.session.set({ checkout: checkout }, function (err) {
 
                     if (err) {
                         link.send(400, err);
                         return;
                     }
 
-                    var Custom = require(M.app.getPath() + '/' + link.params.computeCustomFile);
-
-                    var costs = {
-                        subtotal: 0,
-                        total: 0
-                    };
-
-                    costs.items = {};
-
-                    if (!cart) {
-                        link.send(200, costs);
-                        return;
-                    }
-
-                    for (var i in cart.items) {
-                        var item = cart.items[i];
-                        var itemTotal = item.price * item.quantity;
-
-                        costs.items[i] = {
-                            total: itemTotal
-                        };
-
-                        costs.subtotal += itemTotal;
-                    }
-
-                    Custom.getCost(costs, link, cart.items, function (err, costs) {
-
-                        if (err) {
-                            link.send(400, err);
-                            return;
-                        }
-
-                        var checkout = link.session.checkout || {};
-                        checkout.costs = costs;
-
-                        link.session.set({ checkout: checkout }, function (err) {
-
-                            if (err) {
-                                link.send(400, err);
-                                return;
-                            }
-
-                            link.send(200, costs);
-                        });
-                    });
+                    link.send(200, costs);
                 });
             });
         });
@@ -362,42 +297,26 @@ exports.remove = function(link) {
         return;
     }
 
-    M.datasource.resolve(link.params.dsCarts, function(err, ds) {
+    getCollection(link.params.dsCarts, function(err, collection) {
 
         if (err) {
             link.send(400, err);
             return;
         }
 
-        M.database.open(ds, function(err, db) {
+        var data = link.data || {};
+
+        var unset = {};
+        unset["items." + data._id] = 1;
+
+        collection.update({ _id: link.session._sid }, { $unset: unset }, { safe: true }, function(err, results) {
 
             if (err) {
                 link.send(400, err);
                 return;
             }
 
-            db.collection(ds.collection, function(err, collection) {
-
-                if (err) {
-                    link.send(400, err);
-                    return;
-                }
-
-                var data = link.data || {};
-
-                var unset = {};
-                unset["items." + data._id] = 1;
-
-                collection.update({ _id: link.session._sid }, { $unset: unset }, { safe: true }, function(err, results) {
-
-                    if (err) {
-                        link.send(400, err);
-                        return;
-                    }
-
-                    link.send(200, { status: "OK" });
-                });
-            });
+            link.send(200, { status: "OK" });
         });
     });
 };
@@ -411,43 +330,33 @@ exports.checkout = function(link) {
         return;
     }
 
-    M.datasource.resolve(link.params.ds, function(err, ds) {
+    getCollection(link.params.ds, function(err, collection) {
 
         if (err) {
             link.send(400, err);
             return;
         }
 
-        M.database.open(ds, function(err, db) {
+
+        // TODO implement the logic and use findAndRemove instead of remove such that
+        // we can process the cart or add it back it something goes wrong
+        console.error("Cart checkout functionality not implemented!!!");
+
+        collection.remove({ _id: link.session.id }, { safe: true }, function(err, results) {
 
             if (err) {
                 link.send(400, err);
                 return;
             }
 
-            db.collection(ds.collection, function(err, collection) {
-
-                if (err) {
-                    link.send(400, err);
-                    return;
-                }
-
-                // TODO implement the logic and use findAndRemove instead of remove such that
-                // we can process the cart or add it back it something goes wrong
-                console.error("Cart checkout functionality not implemented!!!");
-
-                collection.remove({ _id: link.session.id }, { safe: true }, function(err, results) {
-
-                    if (err) {
-                        link.send(400, err);
-                        return;
-                    }
-
-                    link.send(200, { status: "OK" });
-                });
-            });
+            link.send(200, { status: "OK" });
         });
     });
+};
+
+exports.validateLimits = function (link) {
+    // TODO
+    link.send(200);
 };
 
 
@@ -459,7 +368,41 @@ exports.checkout = function(link) {
  * */
 function verifyStock (dsArticles, item, callback) {
 
-    M.datasource.resolve(dsArticles, function(err, ds) {
+    getCollection(dsArticles, function (err, collection) {
+
+        if (err) {
+            callback(err);
+            return;
+        }
+
+        var mId = M.mongo.ObjectID(item._id);
+        collection.findOne({ "_id": mId }, function(err, article) {
+
+            if (err) {
+                callback(err);
+                return;
+            }
+
+            if (article.amount - item.quantity < 0) {
+                var err = {
+                    message: "We have only {0} items of {1} in stock. You've chosen {2}.",
+                    params: [
+                        article.amount,
+                        item.name,
+                        item.quantity
+                    ]
+                };
+                return callback(err);
+            }
+
+            callback(null);
+        });
+    });
+}
+
+function getCollection (datasource, callback) {
+
+    M.datasource.resolve(datasource, function(err, ds) {
 
         if (err) {
             callback(err);
@@ -473,36 +416,7 @@ function verifyStock (dsArticles, item, callback) {
                 return;
             }
 
-            db.collection(ds.collection, function(err, collection) {
-
-                if (err) {
-                    callback(err);
-                    return;
-                }
-
-                var mId = M.mongo.ObjectID(item._id);
-                collection.findOne({ "_id": mId }, function(err, article) {
-
-                    if (err) {
-                        callback(err);
-                        return;
-                    }
-
-                    if (article.amount - item.quantity < 0) {
-                        var err = {
-                            message: "We have only {0} items of {1} in stock. You've chosen {2}.",
-                            params: [
-                                article.amount,
-                                item.name,
-                                item.quantity
-                            ]
-                        };
-                        return callback(err);
-                    }
-
-                    callback(null);
-                });
-            });
+            db.collection(ds.collection, callback);
         });
     });
 }
