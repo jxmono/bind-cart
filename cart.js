@@ -212,11 +212,16 @@ function Cart(module) {
                                     $(this).val(item.quantity);
                                     unblockCart();
                                 } else if (newVal === 0) {
-                                    existingItem.fadeOut(function() {
-                                        item.quantity = newVal;
-                                        removeItem(item);
+                                    if (config.removeIfZero) {
+                                        existingItem.fadeOut(function() {
+                                            item.quantity = newVal;
+                                            removeItem(item);
+                                            unblockCart();
+                                        });
+                                    } else {
+                                        $(this).val(1);
                                         unblockCart();
-                                    });
+                                    }
                                 } else {
                                     item.quantity = newVal;
                                     updateItem(item);
