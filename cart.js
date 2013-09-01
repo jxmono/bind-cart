@@ -348,27 +348,34 @@ function Cart(module) {
         $("." + config.options.classes.confirm, self.dom).show();
     }
 
-    function showError(err, safe) {
+    function showError(err, safe, operation, item) {
         if (!err) {
             $(".error").text("").hide();
             $(".checkout", self.dom).removeAttr("disabled");
         } else if (config.i18n) {
             self.emit("message", err, function (err, message) {
                 if (err) { return console.error(err); }
-                showMessage(message, safe);
+                showMessage(message, safe, operation, item);
             });
         } else {
-            showMessage(err, safe);
+            showMessage(err, safe, operation, item);
         }
     }
 
-    function showMessage(message, safe) {
+    function showMessage(message, safe, operation, item) {
 
         $(".checkout", self.dom).attr("disabled", "disabled");
 
         try {
             message = JSON.parse(message);
         } catch (e) {}
+
+        switch (operation) {
+            case "update":
+                $("#" + item._id, self.dom).find(".quantity").val(message.params[0]);
+                break;
+        }
+
 
         if (typeof message === "object" && message.message) {
             var err = message;
@@ -582,7 +589,7 @@ function Cart(module) {
     function updateItem(item) {
         self.link(config.crud.update, { data: item }, function (err, data) {
             unblockCart();
-            showError(err);
+            showError(err, undefined, "update", item);
             updateTotal();
         });
     }
