@@ -205,7 +205,7 @@ function Cart(module) {
                         elem.attr("value", item[qKey]);
                         elem.val(item[qKey]);
                         if (initialAdd) {
-                            elem.on("change click", function() {
+                            elem.on("change", function() {
                                 blockCart();
                                 var newVal = parseInt($(this).val());
                                 if (isNaN(newVal) || newVal < 0) {
@@ -227,6 +227,7 @@ function Cart(module) {
                                     updateItem(item);
                                 }
                             });
+                            $("input[type='number']:visible", self.dom).twbsNumberInput();
                         }
                         break;
                     default:
